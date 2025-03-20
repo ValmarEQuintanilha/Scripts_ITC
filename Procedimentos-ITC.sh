@@ -70,5 +70,17 @@ echo "Instalação do mailx concluída."
 
 ###############################################################
 # Adiciona comando para enviar email quando o ROOT loga no SRV
-echo 'echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br' >> /root/.bashrc
-echo "Arquivo /root/.bashrc modificado..." 
+#echo 'echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br' >> /root/.bashrc
+#echo "Arquivo /root/.bashrc modificado..." 
+
+# Envia  email quando o ROOT loga no SRV
+# Verifica se o Conteudo abaixo existe no arquivo, se não ele adiciona
+content='echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br'
+# Verifica se o conteúdo já está no arquivo /root/.bashrc
+if ! grep -Fxq "$content" /root/.bashrc; then
+    # Se o conteúdo não estiver presente, adiciona ao arquivo
+    echo "$content" >> /root/.bashrc
+    echo "Arquivo /root/.bashrc modificado..."
+else
+    echo "O conteúdo já está presente no arquivo /root/.bashrc. Nenhuma modificação necessária."
+fi
