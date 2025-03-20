@@ -14,6 +14,8 @@ PASSWORD="96PO08as@!!(&(4132"
 USER_SSH_DIR="/home/$USERNAME/.ssh"
 # Arquivo de chave SSH
 SSH_KEY_FILE="$USER_SSH_DIR/id_rsa"
+# Chave compartilhada para adicionar ao arquivo authorized_keys
+SHARED_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCgTIvKmBuLmBkTLuy0KnnkJaDtspLkCkkImOmTXn6bQ7M/amL6NJqiqR0XeQ3w23Z5UjU/bzfolle8ins6oqKhkKB30khxVm6EISfLv1R/pc5GgiyjUGsiE40"
 
 # Verifica se o usuário já existe
 if id "$USERNAME" &>/dev/null; then
@@ -58,6 +60,17 @@ if [ ! -f "$SSH_KEY_FILE" ]; then
 else
     echo "Chave SSH já existe para o usuário $USERNAME."
 fi
+
+# Verifica se a chave compartilhada já está no arquivo authorized_keys
+if [ ! -f "$USER_SSH_DIR/authorized_keys" ] || ! grep -Fxq "$SHARED_KEY" "$USER_SSH_DIR/authorized_keys"; then
+    echo "$SHARED_KEY" >> "$USER_SSH_DIR/authorized_keys"
+    chown "$USERNAME:$USERNAME" "$USER_SSH_DIR/authorized_keys"
+    chmod 600 "$USER_SSH_DIR/authorized_keys"
+    echo "Chave compartilhada adicionada ao arquivo authorized_keys."
+else
+    echo "Chave compartilhada já existe no arquivo authorized_keys."
+fi
+
 
 ###############################################################
 #Instala pacotes basicos
