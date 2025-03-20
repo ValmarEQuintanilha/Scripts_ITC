@@ -1,5 +1,6 @@
 #Script de segurança que cria usuario e ativa envio de e-mail so logr com root
 
+###############################################################
 # verifica se o usuário itconnectadm existe. Se o usuário não existir, ele será 
 # criado, terá uma senha definida e será adicionado ao grupo sudo.
 
@@ -21,6 +22,12 @@ else
     echo "Usuário $USERNAME criado, senha definida e adicionado ao grupo sudo."
 fi
 
+###############################################################
+#Instala pacotes basicos
+apt update && apt install -y curl wget git net-tools sudo htop
+echo "Pacotes instalados com sucesso..." 
+
+###############################################################
 # Verifica a distribuição do Linux e instala o mailx
 # Função para instalar o mailx com base na distribuição
 install_mailx() {
@@ -61,7 +68,7 @@ cat /etc/*-release
 install_mailx
 echo "Instalação do mailx concluída."
 
-
-
+###############################################################
+# Adiciona comando para enviar email quando o ROOT loga no SRV
 echo 'echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br' >> /root/.bashrc
 echo "Arquivo /root/.bashrc modificado..." 
