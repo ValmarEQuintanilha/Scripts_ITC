@@ -5,30 +5,11 @@
 # criado, terá uma senha definida e será adicionado ao grupo sudo.
 
 #!/bin/bash
-# Nome do usuário
-##USERNAME="itconnectadm"
-# Senha do usuário
-##PASSWORD="96PO08as@!!(&(4132"
-# Verifica se o usuário já existe
-##if id "$USERNAME" &>/dev/null; then
-##    echo "O usuário $USERNAME já existe."
-##else
-    # Adiciona o usuário
-##    adduser --gecos "" --disabled-password "$USERNAME"
-    # Define a senha para o usuário
-##    echo "$USERNAME:$PASSWORD" | chpasswd
-    # Adiciona o usuário ao grupo sudo
-##    usermod -aG sudo "$USERNAME"
-##    echo "Usuário $USERNAME criado, senha definida e adicionado ao grupo sudo."
-##fi
-
-#!/bin/bash
 
 # Nome do usuário
 USERNAME="itconnectadm"
 # Senha do usuário
 PASSWORD="96PO08as@!!(&(4132"
-
 # Verifica se o usuário já existe
 if id "$USERNAME" &>/dev/null; then
     echo "O usuário $USERNAME já existe."
@@ -93,10 +74,6 @@ echo "Instalação do mailx concluída."
 
 ###############################################################
 # Adiciona comando para enviar email quando o ROOT loga no SRV
-#echo 'echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br' >> /root/.bashrc
-#echo "Arquivo /root/.bashrc modificado..." 
-
-# Envia  email quando o ROOT loga no SRV
 # Verifica se o Conteudo abaixo existe no arquivo, se não ele adiciona
 content='echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br'
 # Verifica se o conteúdo já está no arquivo /root/.bashrc
@@ -107,3 +84,4 @@ if ! grep -Fxq "$content" /root/.bashrc; then
 else
     echo "O conteúdo já está presente no arquivo /root/.bashrc. Nenhuma modificação necessária."
 fi
+
