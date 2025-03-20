@@ -64,3 +64,4 @@ echo "Instalação do mailx concluída."
 
 
 echo 'echo '\''ALERT - Root Shell Access on:'\'' `hostname` `date` `who` | mail -s "Alert: Root Access from `who | cut -d'\''('\'' -f2 | cut -d'\''('\'' -f1`" infra.dc@itconnect.com.br' >> /root/.bashrc
+echo ' Arquivo /root/.bashrc modificado..." 
