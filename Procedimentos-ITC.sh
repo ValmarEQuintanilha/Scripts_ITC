@@ -6,12 +6,35 @@
 
 #!/bin/bash
 # Nome do usuário
+##USERNAME="itconnectadm"
+# Senha do usuário
+##PASSWORD="96PO08as@!!(&(4132"
+# Verifica se o usuário já existe
+##if id "$USERNAME" &>/dev/null; then
+##    echo "O usuário $USERNAME já existe."
+##else
+    # Adiciona o usuário
+##    adduser --gecos "" --disabled-password "$USERNAME"
+    # Define a senha para o usuário
+##    echo "$USERNAME:$PASSWORD" | chpasswd
+    # Adiciona o usuário ao grupo sudo
+##    usermod -aG sudo "$USERNAME"
+##    echo "Usuário $USERNAME criado, senha definida e adicionado ao grupo sudo."
+##fi
+
+#!/bin/bash
+
+# Nome do usuário
 USERNAME="itconnectadm"
 # Senha do usuário
 PASSWORD="96PO08as@!!(&(4132"
+
 # Verifica se o usuário já existe
 if id "$USERNAME" &>/dev/null; then
     echo "O usuário $USERNAME já existe."
+    # Troca a senha do usuário existente
+    echo "$USERNAME:$PASSWORD" | chpasswd
+    echo "Senha do usuário $USERNAME atualizada."
 else
     # Adiciona o usuário
     adduser --gecos "" --disabled-password "$USERNAME"
