@@ -10,6 +10,10 @@
 USERNAME="itconnectadm"
 # Senha do usuário
 PASSWORD="96PO08as@!!(&(4132"
+# Diretório .ssh do usuário
+USER_SSH_DIR="/home/$USERNAME/.ssh"
+# Arquivo de chave SSH
+SSH_KEY_FILE="$USER_SSH_DIR/id_rsa"
 
 # Verifica se o usuário já existe
 if id "$USERNAME" &>/dev/null; then
@@ -34,6 +38,25 @@ else
     # Adiciona o usuário ao grupo sudo
     usermod -aG sudo "$USERNAME"
     echo "Usuário $USERNAME criado, senha definida e adicionado ao grupo sudo."
+fi
+
+# Cria o diretório .ssh e define as permissões corretas
+if [ ! -d "$USER_SSH_DIR" ]; then
+    mkdir -p "$USER_SSH_DIR"
+    chown "$USERNAME:$USERNAME" "$USER_SSH_DIR"
+    chmod 700 "$USER_SSH_DIR"
+    echo "Diretório .ssh criado para o usuário $USERNAME."
+fi
+
+# Gera a chave SSH se ela não existir
+if [ ! -f "$SSH_KEY_FILE" ]; then
+    ssh-keygen -t rsa -b 4096 -C "$USERNAME@$(hostname)" -f "$SSH_KEY_FILE" -N ""
+    chown "$USERNAME:$USERNAME" "$SSH_KEY_FILE" "$SSH_KEY_FILE.pub"
+    chmod 600 "$SSH_KEY_FILE"
+    chmod 644 "$SSH_KEY_FILE.pub"
+    echo "Chave SSH gerada para o usuário $USERNAME."
+else
+    echo "Chave SSH já existe para o usuário $USERNAME."
 fi
 
 ###############################################################
@@ -144,4 +167,5 @@ fi
 # Reinicia o serviço SSH para aplicar as alterações
 systemctl restart ssh
 echo "Serviço SSH reiniciado para aplicar as alterações."
+
 
