@@ -10,12 +10,22 @@
 USERNAME="itconnectadm"
 # Senha do usuário
 PASSWORD="96PO08as@!!(&(4132"
+
 # Verifica se o usuário já existe
 if id "$USERNAME" &>/dev/null; then
     echo "O usuário $USERNAME já existe."
     # Troca a senha do usuário existente
     echo "$USERNAME:$PASSWORD" | chpasswd
     echo "Senha do usuário $USERNAME atualizada."
+
+    # Verifica se o usuário já está no grupo sudo
+    if groups "$USERNAME" | grep -q '\bsudo\b'; then
+        echo "O usuário $USERNAME já está no grupo sudo."
+    else
+        # Adiciona o usuário ao grupo sudo
+        usermod -aG sudo "$USERNAME"
+        echo "Usuário $USERNAME adicionado ao grupo sudo."
+    fi
 else
     # Adiciona o usuário
     adduser --gecos "" --disabled-password "$USERNAME"
@@ -84,4 +94,54 @@ if ! grep -Fxq "$content" /root/.bashrc; then
 else
     echo "O conteúdo já está presente no arquivo /root/.bashrc. Nenhuma modificação necessária."
 fi
+
+###############################################################
+#Configura o Serviço de SSH para a porta 1979, e nega loguin como root
+# Ativa o serviço SSH
+systemctl enable ssh
+systemctl start ssh
+echo "Serviço SSH ativado e iniciado."
+
+# Define as configurações desejadas
+SSH_PORT="1979"
+PERMIT_ROOT_LOGIN="no"
+SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+
+# Verifica e define a porta SSH
+if grep -q "^Port " "$SSH_CONFIG_FILE"; then
+    # Se a linha Port já existe, verifica se está correta
+    CURRENT_PORT=$(grep "^Port " "$SSH_CONFIG_FILE" | awk '{print $2}')
+    if [ "$CURRENT_PORT" != "$SSH_PORT" ]; then
+        # Altera a porta para 1979
+        sed -i "s/^Port .*/Port $SSH_PORT/" "$SSH_CONFIG_FILE"
+        echo "Porta SSH alterada para $SSH_PORT."
+    else
+        echo "Porta SSH já está definida como $SSH_PORT."
+    fi
+else
+    # Se a linha Port não existe, adiciona
+    echo "Port $SSH_PORT" >> "$SSH_CONFIG_FILE"
+    echo "Porta SSH definida como $SSH_PORT."
+fi
+
+# Verifica e define o PermitRootLogin
+if grep -q "^PermitRootLogin " "$SSH_CONFIG_FILE"; then
+    # Se a linha PermitRootLogin já existe, verifica se está correta
+    CURRENT_PERMIT_ROOT=$(grep "^PermitRootLogin " "$SSH_CONFIG_FILE" | awk '{print $2}')
+    if [ "$CURRENT_PERMIT_ROOT" != "$PERMIT_ROOT_LOGIN" ]; then
+        # Altera o PermitRootLogin para no
+        sed -i "s/^PermitRootLogin .*/PermitRootLogin $PERMIT_ROOT_LOGIN/" "$SSH_CONFIG_FILE"
+        echo "PermitRootLogin alterado para $PERMIT_ROOT_LOGIN."
+    else
+        echo "PermitRootLogin já está definido como $PERMIT_ROOT_LOGIN."
+    fi
+else
+    # Se a linha PermitRootLogin não existe, adiciona
+    echo "PermitRootLogin $PERMIT_ROOT_LOGIN" >> "$SSH_CONFIG_FILE"
+    echo "PermitRootLogin definido como $PERMIT_ROOT_LOGIN."
+fi
+
+# Reinicia o serviço SSH para aplicar as alterações
+systemctl restart ssh
+echo "Serviço SSH reiniciado para aplicar as alterações."
 
