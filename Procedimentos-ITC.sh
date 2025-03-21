@@ -134,51 +134,62 @@ fi
 ###############################################################
 #Configura o Serviço de SSH para a porta 1979, e nega loguin como root
 # Ativa o serviço SSH
-systemctl enable ssh
-systemctl start ssh
-echo "########### >>>>>>>>>>> Serviço SSH ativado e iniciado. <<<<<<<<<<< ###########"
 
-# Define as configurações desejadas
-SSH_PORT="1979"
-PERMIT_ROOT_LOGIN="no"
-SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+echo "#### >>>>> Verificando o serviço SSH... <<<<<<<<<<< ###########"
 
-# Verifica e define a porta SSH
-if grep -q "^Port " "$SSH_CONFIG_FILE"; then
-    # Se a linha Port já existe, verifica se está correta
-    CURRENT_PORT=$(grep "^Port " "$SSH_CONFIG_FILE" | awk '{print $2}')
-    if [ "$CURRENT_PORT" != "$SSH_PORT" ]; then
-        # Altera a porta para 1979
-        sed -i "s/^Port .*/Port $SSH_PORT/" "$SSH_CONFIG_FILE"
-        echo "########### >>>>>>>>>>> Porta SSH alterada para $SSH_PORT. <<<<<<<<<<< ###########"
-    else
-        echo "########### >>>>>>>>>>> Porta SSH já está definida como $SSH_PORT. <<<<<<<<<<< ###########"
-    fi
+# Ativa e inicia o serviço SSH se não estiver rodando
+if ! systemctl is-active --quiet ssh; then
+    systemctl enable ssh
+    systemctl start ssh
+    echo "#### >>>>> Serviço SSH ativado e iniciado. <<<<<<<<<<< ###########"
 else
-    # Se a linha Port não existe, adiciona
-    echo "Port $SSH_PORT" >> "$SSH_CONFIG_FILE"
-    echo "########### >>>>>>>>>>> Porta SSH definida como $SSH_PORT. <<<<<<<<<<< ###########"
+    echo "#### >>>>> O serviço SSH já está em execução. <<<<<<<<<<< ###########"
 fi
 
-# Verifica e define o PermitRootLogin
-if grep -q "^PermitRootLogin " "$SSH_CONFIG_FILE"; then
-    # Se a linha PermitRootLogin já existe, verifica se está correta
-    CURRENT_PERMIT_ROOT=$(grep "^PermitRootLogin " "$SSH_CONFIG_FILE" | awk '{print $2}')
-    if [ "$CURRENT_PERMIT_ROOT" != "$PERMIT_ROOT_LOGIN" ]; then
-        # Altera o PermitRootLogin para no
-        sed -i "s/^PermitRootLogin .*/PermitRootLogin $PERMIT_ROOT_LOGIN/" "$SSH_CONFIG_FILE"
-        echo "PermitRootLogin alterado para $PERMIT_ROOT_LOGIN."
+# Define o caminho do arquivo de configuração do SSH
+SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+
+# === Verifica e configura a porta SSH ===
+CURRENT_PORT=$(grep "^Port " "$SSH_CONFIG_FILE" | awk '{print $2}')
+
+if [ -z "$CURRENT_PORT" ]; then
+    echo "#### >>>>> Nenhuma porta definida no SSH. Usando a padrão (22). <<<<<<<<<<< ###########"
+    CURRENT_PORT=22
+fi
+
+echo "#### >>>>> A porta atual do SSH é: $CURRENT_PORT <<<<<<<<<<< ###########"
+read -p "Deseja alterar a porta do SSH? (s/n): " ALTERA_PORTA
+
+if [[ "$ALTERA_PORTA" =~ ^[Ss]$ ]]; then
+    read -p "Digite a nova porta: " NOVA_PORTA
+    if [[ "$CURRENT_PORT" =~ ^[0-9]+$ ]]; then
+        sed -i "s/^Port .*/Port $NOVA_PORTA/" "$SSH_CONFIG_FILE"
     else
-        echo "########### >>>>>>>>>>> PermitRootLogin já está definido como $PERMIT_ROOT_LOGIN. <<<<<<<<<<< ###########"
+        echo "Port $NOVA_PORTA" >> "$SSH_CONFIG_FILE"
+    fi
+    echo "#### >>>>> Porta SSH alterada para $NOVA_PORTA. <<<<<<<<<<< ###########"
+fi
+
+# === Verifica e configura PermitRootLogin ===
+CURRENT_PERMIT_ROOT=$(grep "^PermitRootLogin " "$SSH_CONFIG_FILE" | awk '{print $2}')
+
+if [ -z "$CURRENT_PERMIT_ROOT" ]; then
+    echo "PermitRootLogin no" >> "$SSH_CONFIG_FILE"
+    echo "#### >>>>> PermitRootLogin não existia, foi definido como NO. <<<<<<<<<<< ###########"
+elif [ "$CURRENT_PERMIT_ROOT" == "yes" ]; then
+    read -p "PermitRootLogin está como YES. Deseja alterar para NO? (s/n): " ALTERA_ROOT
+    if [[ "$ALTERA_ROOT" =~ ^[Ss]$ ]]; then
+        sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' "$SSH_CONFIG_FILE"
+        echo "#### >>>>> PermitRootLogin alterado para NO. <<<<<<<<<<< ###########"
     fi
 else
-    # Se a linha PermitRootLogin não existe, adiciona
-    echo "PermitRootLogin $PERMIT_ROOT_LOGIN" >> "$SSH_CONFIG_FILE"
-    echo "########### >>>>>>>>>>> PermitRootLogin definido como $PERMIT_ROOT_LOGIN. <<<<<<<<<<< ###########"
+    echo "#### >>>>> PermitRootLogin já está configurado como NO. <<<<<<<<<<< ###########"
 fi
 
 # Reinicia o serviço SSH para aplicar as alterações
 systemctl restart ssh
-echo "########### >>>>>>>>>>> Serviço SSH reiniciado para aplicar as alterações. <<<<<<<<<<< ###########"
+echo "#### >>>>> Serviço SSH reiniciado para aplicar as configurações. <<<<<<<<<<< ###########"
 
-
+# Exibe as configurações finais
+echo "#### >>>>> Configuração final do SSH: <<<<<<<<<<< ###########"
+grep -E "^Port|^PermitRootLogin" "$SSH_CONFIG_FILE"
